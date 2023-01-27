@@ -1,10 +1,10 @@
 import os
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
-from .cpp_process import FileProcessor
+from amalgamation.cpp_process import FileProcessor
 
 if TYPE_CHECKING:
-    from .amalgamation import Amalgamation
+    from amalgamation.amalgamation import Amalgamation
 
 
 class SourceProcessor(FileProcessor):

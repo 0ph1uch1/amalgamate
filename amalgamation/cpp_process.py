@@ -1,11 +1,8 @@
 import os
 import re
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, overload
+from typing import Any, Dict, List, overload
 
-from .patterns import Patterns
-
-if TYPE_CHECKING:
-    from .amalgamation import Amalgamation
+from amalgamation.patterns import Patterns
 
 
 class IncludeStruct(object):
@@ -129,34 +126,9 @@ class FileProcessor(object):
                 lastend -= 1
         data += self.data[lastend:]
         self.data = data
-        # startIndex = 0
-        # m = Patterns.fine_twoslash_comment_pattern.search(
-        #     self.data, startIndex)
 
-        # # first, find all codes that can be removed.
-        # toRemove: List[re.Match] = []
-        # while m is not None:
-        #     if not self.overlaps(m, [
-        #         self.strLiternalMatches,
-        #         self.threeslashCommentMatches,
-        #         self.quoteCommentMatches,
-        #     ]):
-        #         toRemove.append(m)
-        #     startIndex = m.end()
-        #     m = Patterns.fine_twoslash_comment_pattern.search(
-        #         self.data, startIndex)
-
-        # # remove them.
-        # newdata = ""
-        # lastend = 0
-        # for rm in toRemove:
-        #     newdata += self.data[lastend:rm.start()]
-        #     lastend = rm.end()
-        # newdata += self.data[lastend:]
-        # self.data = newdata
-
-        # match memories are invalid now since the indexes are changed
         self.forget()
+        self.trimspace()
 
     def findIncludes(self):
         """

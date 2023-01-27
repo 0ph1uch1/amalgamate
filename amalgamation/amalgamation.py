@@ -1,6 +1,7 @@
 import json
 import os
-from typing import TYPE_CHECKING, Dict, List, Optional, Type, TypeVar
+import re
+from typing import Dict, List, Optional, Type, TypeVar
 
 from amalgamation.cpp_process import FileProcessor
 from amalgamation.header import HeaderProcessor
@@ -130,7 +131,9 @@ class Amalgamation(object):
         sourcePrologue = prologue + \
             f"\n#include \"{os.path.basename(self.headerDest)}\"\n"
         self._process(self.headers, self.headerDest, prologue)
+        print(f"Header file is generated to {self.headerDest}")
         self._process(self.sources, self.sourceDest, sourcePrologue)
+        print(f"Source file is generated to {self.sourceDest}")
 
     @staticmethod
     def _process(filelist: List[FileProcessor], writeto: str, prologue: str):
@@ -144,6 +147,8 @@ class Amalgamation(object):
         result = prologue
         for s in root:
             result += s.process()
+
+        result = re.sub(re.compile("\n\n\n+"), "\n\n", result)
 
         d = os.path.dirname(writeto)
         if not os.path.exists(d):
