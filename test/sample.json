@@ -1,0 +1,31 @@
+{
+    "baseDirectory": "./test",
+    "sources": [
+        "src/main.cpp",
+        "src/main.h"
+    ],
+    "headers": [
+        "include/"
+    ],
+    "sourceDest": "output/out.cpp",
+    "headerDest": "output/out.hpp",
+    "prologue": "other/prologue.txt",
+    "includeDirectory": [
+        "include"
+    ],
+    "removeTwoSlashComments": true,
+    "extension": {
+        "source": [
+            ".c",
+            ".cpp",
+            ".cxx",
+            ".cc"
+        ],
+        "header": [
+            ".h",
+            ".hpp",
+            ".hxx",
+            ".inl"
+        ]
+    }
+}
