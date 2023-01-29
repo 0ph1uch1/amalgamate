@@ -154,6 +154,19 @@ class Amalgamation(object):
         if not os.path.exists(d):
             os.mkdir(d)
 
+        def isSameFile(file: str, content: str) -> bool:
+            try:
+                with open(file, 'r', encoding='utf-8') as f:
+                    oldContent = f.read()
+            except Exception:
+                return False
+            return oldContent == content
+
+        bIsSameFile = isSameFile(writeto, result)
+        if bIsSameFile:
+            print(f"File {writeto} is not changed")
+            return
+
         with open(writeto, 'w', encoding='utf-8') as f:
             f.write(result)
 
