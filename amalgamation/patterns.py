@@ -9,4 +9,8 @@ class Patterns:
         r'(^|\n)#\s*?include\s*?(<|")(?P<path>.*?)("|>)',
         re.S
     )
+    pragmaonce_pattern = re.compile(
+        r'(^|\n)#\s*?pragma\s*?once',
+        re.S
+        )
     string_pattern = re.compile("[^']" r'".*?(?<=[^\\])"', re.S)

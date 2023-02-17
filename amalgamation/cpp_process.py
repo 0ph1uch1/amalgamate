@@ -1,8 +1,11 @@
 import os
 import re
-from typing import Any, Dict, List, overload
+from typing import Any, Dict, List, Tuple, overload, TYPE_CHECKING
 
 from amalgamation.patterns import Patterns
+
+if TYPE_CHECKING:
+    from amalgamation.amalgamation import Amalgamation
 
 
 class IncludeStruct(object):
@@ -14,20 +17,6 @@ class IncludeStruct(object):
 class FileProcessor(object):
     baseDir = ""
 
-    @staticmethod
-    def registerBaseDirectory(path: str):
-        if path is None:
-            raise ValueError("Base directory not set")
-
-        if os.path.isabs(path):
-            FileProcessor.baseDir = os.path.abspath(path)
-        else:
-            folder = os.path.curdir
-            FileProcessor.baseDir = os.path.abspath(os.path.join(folder, path))
-
-        if not os.path.exists(FileProcessor.baseDir) or not os.path.isdir(FileProcessor.baseDir):
-            raise ValueError(f"No such directory: {FileProcessor.baseDir}")
-
     def __init__(self, file: str) -> None:
         self.filename = file
         with open(file, 'r', encoding='utf-8') as f:
@@ -37,12 +26,17 @@ class FileProcessor(object):
         self.refCount = 0
         self.includes: List[IncludeStruct] = []
 
+    def analyze(self, amalgamation: "Amalgamation"):
+        self.removeUseless(amalgamation.removeTwoSlashComments)
+        self.readInclude(amalgamation)
+
     def forget(self):
         self.strLiternalMatches: List[re.Match] = None
         self.threeslashCommentMatches: List[re.Match] = None
         self.twoslashCommentMatches: List[re.Match] = None
         self.quoteCommentMatches: List[re.Match] = None
         self.includeMatches: List[re.Match] = None
+        self.pragmaonceMatches: List[re.Match] = None
 
     def initMemory(self):
         self.strLiternalMatches: List[re.Match] = []
@@ -50,6 +44,7 @@ class FileProcessor(object):
         self.twoslashCommentMatches: List[re.Match] = []
         self.quoteCommentMatches: List[re.Match] = []
         self.includeMatches: List[re.Match] = []
+        self.pragmaonceMatches: List[re.Match] = []
 
     def memorizeMatches(self):
         """
@@ -61,12 +56,9 @@ class FileProcessor(object):
         self.initMemory()
 
         i = 1
+        self.data = "\n" + self.data
         content_len = len(self.data)
-        if content_len > 10 and self.data[0] == '#':
-            temp = self.searchMatchAt(
-                0, Patterns.include_pattern, self.includeMatches)
-            if temp != 2:
-                i = temp
+
         while i < content_len:
             j = i - 1
             current = self.data[i]
@@ -106,29 +98,83 @@ class FileProcessor(object):
                     Patterns.include_pattern,
                     self.includeMatches
                 )
+                if i == j+2:
+                    i = self.searchMatchAt(
+                        j,
+                        Patterns.pragmaonce_pattern,
+                        self.pragmaonceMatches
+                    )
             else:
                 # Skip to the next char.
                 i += 1
 
-    def removeComments(self):
+    def removeUseless(self, removeComment: bool):
         """
-        Remove comments startswith two slash.
+        Remove all useless patterns.
         """
         if self.strLiternalMatches is None:
             self.memorizeMatches()
 
         data = ""
         lastend = 0
-        for m in self.twoslashCommentMatches:
+
+        iComment = 0
+        iPragma = 0
+
+        def decideRemoveType(lsts: List[List[re.Match]], *args: Tuple[int]) -> List[re.Match]:
+            """Find the first match in args, args should be a list of List[re.Match]."""
+            index = -1
+            start = len(self.data)+1
+            for i, lst in enumerate(lsts):
+                if len(lst) == args[i]:
+                    continue
+                if lst[args[i]].start() < start:
+                    start = lst[args[i]].start()
+                    index = i
+            if index == -1:
+                return None
+            return lsts[index]
+        lst = decideRemoveType(
+            [
+                self.twoslashCommentMatches,
+                self.pragmaonceMatches
+            ],
+            iComment,
+            iPragma)
+        while lst is not None:
+            if lst is self.twoslashCommentMatches:
+                m = self.twoslashCommentMatches[iComment]
+                iComment += 1
+            else:
+                m = self.pragmaonceMatches[iPragma]
+                iPragma += 1
+
+            if not removeComment and lst is self.twoslashCommentMatches:
+                continue
+
             data += self.data[lastend:m.start()]
             lastend = m.end()
-            if self.data[lastend-1] == '\n':
+            if lst is self.twoslashCommentMatches and self.data[lastend-1] == '\n':
                 lastend -= 1
+                
+            lst = decideRemoveType(
+            [
+                self.twoslashCommentMatches,
+                self.pragmaonceMatches
+            ],
+            iComment,
+            iPragma)
+
         data += self.data[lastend:]
         self.data = data
 
         self.forget()
         self.trimspace()
+
+    def removeComments(self):
+        """
+        Remove comments startswith two slash.
+        """
 
     def findIncludes(self):
         """
@@ -139,28 +185,6 @@ class FileProcessor(object):
 
         for m in self.includeMatches:
             self.includes.append(IncludeStruct(m))
-
-    @overload
-    @staticmethod
-    def overlaps(_match: re.Match, _matches: re.Match) -> bool:
-        ...
-
-    @overload
-    @staticmethod
-    def overlaps(_match: re.Match, _matches: Any) -> bool:
-        ...
-
-    @staticmethod
-    def overlaps(_match: re.Match, _matches):
-        """
-        Test if `_match` overlaps with `_matches`.
-
-        `_matches` can be any iterable that contains only :class:`re.Match` objects,
-        or just a :class:`re.Match` object.
-        """
-        if isinstance(_matches, re.Match):
-            return not (_match.end() <= _matches.start() or _match.start() >= _matches.end())
-        return any(FileProcessor.overlaps(_match, x) for x in _matches)
 
     def searchFile(self, searchPath: List[str], relpath: str, dlist: List[Dict[str, "FileProcessor"]]) -> "FileProcessor":
         fullpath = [os.path.abspath(os.path.join(
@@ -186,7 +210,7 @@ class FileProcessor(object):
             return match.end()
         return index + 2
 
-    def analyze(self, any):
+    def readInclude(self, any):
         """Override this."""
         raise NotImplementedError()
 
@@ -229,3 +253,39 @@ class FileProcessor(object):
             if m.start() <= index and index < m.end():
                 return True
         return False
+
+    @overload
+    @staticmethod
+    def overlaps(_match: re.Match, _matches: re.Match) -> bool:
+        ...
+
+    @overload
+    @staticmethod
+    def overlaps(_match: re.Match, _matches: Any) -> bool:
+        ...
+
+    @staticmethod
+    def overlaps(_match: re.Match, _matches):
+        """
+        Test if `_match` overlaps with `_matches`.
+
+        `_matches` can be any iterable that contains only :class:`re.Match` objects,
+        or just a :class:`re.Match` object.
+        """
+        if isinstance(_matches, re.Match):
+            return not (_match.end() <= _matches.start() or _match.start() >= _matches.end())
+        return any(FileProcessor.overlaps(_match, x) for x in _matches)
+
+    @staticmethod
+    def registerBaseDirectory(path: str):
+        if path is None:
+            raise ValueError("Base directory not set")
+
+        if os.path.isabs(path):
+            FileProcessor.baseDir = os.path.abspath(path)
+        else:
+            folder = os.path.curdir
+            FileProcessor.baseDir = os.path.abspath(os.path.join(folder, path))
+
+        if not os.path.exists(FileProcessor.baseDir) or not os.path.isdir(FileProcessor.baseDir):
+            raise ValueError(f"No such directory: {FileProcessor.baseDir}")

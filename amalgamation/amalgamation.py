@@ -131,7 +131,9 @@ class Amalgamation(object):
                 prologue = f.read()
         sourcePrologue = prologue + \
             f"\n#include \"{os.path.basename(self.headerDest)}\"\n"
-        if self._process(self.headers, self.headerDest, prologue):
+        headerPrologue = prologue + \
+            f"\n#pragma once\n"
+        if self._process(self.headers, self.headerDest, headerPrologue):
             print(f"Header file is generated to {self.headerDest}")
         if self._process(self.sources, self.sourceDest, sourcePrologue):
             print(f"Source file is generated to {self.sourceDest}")

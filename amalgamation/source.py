@@ -11,11 +11,6 @@ class SourceProcessor(FileProcessor):
     def __init__(self, file: str) -> None:
         super().__init__(file)
 
-    def analyze(self, amalgamation: "Amalgamation"):
-        if amalgamation.removeTwoSlashComments:
-            self.removeComments()
-        self.readInclude(amalgamation)
-
     def readInclude(self, amalgamation: "Amalgamation"):
         self.findIncludes()
         searchPaths = amalgamation.includeDirectory

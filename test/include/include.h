@@ -4,6 +4,7 @@
 // removed
 // removed
 /// not removed
+#pragma once
 
 #include <iostream>
 
@@ -20,6 +21,8 @@ inline void f()
 {
     std::cout << "what" << std::endl;
 }
+
+#pragma once
 
 #include "inc2.h"
 
