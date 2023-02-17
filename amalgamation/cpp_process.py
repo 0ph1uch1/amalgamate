@@ -136,18 +136,18 @@ class FileProcessor(object):
             return lsts[index]
         if removeComment:
             lst = decideRemoveType(
-            [
-                self.twoslashCommentMatches,
-                self.pragmaonceMatches
-            ],
-            iComment,
-            iPragma)
+                [
+                    self.twoslashCommentMatches,
+                    self.pragmaonceMatches
+                ],
+                iComment,
+                iPragma)
         else:
             lst = decideRemoveType(
                 [self.pragmaonceMatches],
                 iPragma
             )
-        
+
         while lst is not None:
             if lst is self.twoslashCommentMatches:
                 m = self.twoslashCommentMatches[iComment]
@@ -163,15 +163,15 @@ class FileProcessor(object):
             lastend = m.end()
             if lst is self.twoslashCommentMatches and self.data[lastend-1] == '\n':
                 lastend -= 1
-            
+
             if removeComment:
                 lst = decideRemoveType(
-                [
-                    self.twoslashCommentMatches,
-                    self.pragmaonceMatches
-                ],
-                iComment,
-                iPragma)
+                    [
+                        self.twoslashCommentMatches,
+                        self.pragmaonceMatches
+                    ],
+                    iComment,
+                    iPragma)
             else:
                 lst = decideRemoveType(
                     [self.pragmaonceMatches],
