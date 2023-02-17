@@ -57,10 +57,11 @@ class Amalgamation(object):
                 ))
         self.includeDirectory = searchPaths
         # update destination
-        if not os.path.isabs(self.sourceDest):
+        if self.sourceDest is not None and not os.path.isabs(self.sourceDest):
             self.sourceDest = os.path.abspath(
                 os.path.join(FileProcessor.baseDir, self.sourceDest)
             )
+        if self.headerDest is not None and not os.path.isabs(self.headerDest):
             self.headerDest = os.path.abspath(
                 os.path.join(FileProcessor.baseDir, self.headerDest)
             )
@@ -130,13 +131,16 @@ class Amalgamation(object):
                 prologue = f.read()
         sourcePrologue = prologue + \
             f"\n#include \"{os.path.basename(self.headerDest)}\"\n"
-        self._process(self.headers, self.headerDest, prologue)
-        print(f"Header file is generated to {self.headerDest}")
-        self._process(self.sources, self.sourceDest, sourcePrologue)
-        print(f"Source file is generated to {self.sourceDest}")
+        if self._process(self.headers, self.headerDest, prologue):
+            print(f"Header file is generated to {self.headerDest}")
+        if self._process(self.sources, self.sourceDest, sourcePrologue):
+            print(f"Source file is generated to {self.sourceDest}")
 
     @staticmethod
     def _process(filelist: List[FileProcessor], writeto: str, prologue: str):
+        if writeto is None:
+            return False
+
         root: List[HeaderProcessor] = []
         for s in filelist:
             if s.refCount == 0:
@@ -152,7 +156,7 @@ class Amalgamation(object):
 
         d = os.path.dirname(writeto)
         if not os.path.exists(d):
-            os.mkdir(d)
+            os.makedirs(d)
 
         def isSameFile(file: str, content: str) -> bool:
             try:
@@ -165,10 +169,12 @@ class Amalgamation(object):
         bIsSameFile = isSameFile(writeto, result)
         if bIsSameFile:
             print(f"File {writeto} is not changed")
-            return
+            return True
 
         with open(writeto, 'w', encoding='utf-8') as f:
             f.write(result)
+
+        return True
 
 
 def run(jsonfile: str):
