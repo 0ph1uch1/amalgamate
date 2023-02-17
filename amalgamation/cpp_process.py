@@ -243,6 +243,7 @@ class FileProcessor(object):
             t = rt.lstrip()
             if len(t) == 0:
                 countChar += 1
+                ans += "\n"
                 continue
             cannotLstrip = self.charInLiteral(countChar)
             cannotRstrip = self.charInLiteral(countChar+len(row))
