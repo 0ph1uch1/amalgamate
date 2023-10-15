@@ -11,7 +11,7 @@ python3 main.py config.json
 
 Complete your config file in json, see `test/sample.json`
 
-`baseDirectory` The directory for all the relative paths
+`baseDirectory` The directory for all the relative paths. Can be a relative path (to current working directory) or an absolute path.
 
 `sources` Source files to be amalgamated. Folder is supported. If folder is supplied, all the files in it with extension defined in `extension.source` and `extension.header` will be amalgamated.
 

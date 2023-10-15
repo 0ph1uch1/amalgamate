@@ -6,8 +6,11 @@
 
 #ifndef INCLUDE_H
 #define INCLUDE_H
+
 /// not removed
+
 #include <iostream>
+
 static const std::string s = "\
 these codes are not removed:\
 #include<cstddef>\
@@ -21,12 +24,16 @@ inline void f()
 {
     std::cout << "what" << std::endl;
 }
+
 /// inc2.h START
 
 #include<cstdio>
+
 #include<cstddef>
 /// note that all "#pragma once" will be deleted
+
 /// inc2.h END
 
 #endif
+
 /// include.h END

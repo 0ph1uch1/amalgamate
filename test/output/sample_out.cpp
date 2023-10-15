@@ -7,12 +7,15 @@
 /// main.h START
 
 #include<memory>
+
 /// main.h END
 
 #include<string>
+
 int main(){
     /// not removed
     f();
     return 0;
 }
+
 /// main.cpp END
