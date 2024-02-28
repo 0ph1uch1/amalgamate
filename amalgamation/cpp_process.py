@@ -1,17 +1,19 @@
 import os
 import re
-from typing import Any, Dict, List, Tuple, overload, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, TypeVar, overload
 
 from amalgamation.patterns import Patterns
 
 if TYPE_CHECKING:
     from amalgamation.amalgamation import Amalgamation
 
+_T = TypeVar("_T", bound="FileProcessor", covariant=True)
+
 
 class IncludeStruct(object):
     def __init__(self, _match: re.Match) -> None:
         self._match = _match
-        self.object: "FileProcessor" = None
+        self.object: "FileProcessor" = None  # type: ignore
 
 
 class FileProcessor(object):
@@ -121,7 +123,7 @@ class FileProcessor(object):
         iComment = 0
         iPragma = 0
 
-        def decideRemoveType(lsts: List[List[re.Match]], *args: Tuple[int]) -> List[re.Match]:
+        def decideRemoveType(lsts: List[List[re.Match]], *args: int) -> Optional[List[re.Match]]:
             """Find the first match in args, args should be a list of List[re.Match]."""
             index = -1
             start = len(self.data)+1
@@ -134,6 +136,7 @@ class FileProcessor(object):
             if index == -1:
                 return None
             return lsts[index]
+
         if removeComment:
             lst = decideRemoveType(
                 [
@@ -184,11 +187,6 @@ class FileProcessor(object):
         self.forget()
         self.trimspace()
 
-    def removeComments(self):
-        """
-        Remove comments startswith two slash.
-        """
-
     def findIncludes(self):
         """
         Find all includes and memorize them.
@@ -199,7 +197,7 @@ class FileProcessor(object):
         for m in self.includeMatches:
             self.includes.append(IncludeStruct(m))
 
-    def searchFile(self, searchPath: List[str], relpath: str, dlist: List[Dict[str, "FileProcessor"]]) -> "FileProcessor":
+    def searchFile(self, searchPath: List[str], relpath: str, dlist: List[Dict[str, _T]]) -> Optional[_T]:
         fullpath = [os.path.abspath(os.path.join(
             os.path.dirname(self.filename), relpath))]
         for path in searchPath:
@@ -231,7 +229,7 @@ class FileProcessor(object):
         """Override this."""
         raise NotImplementedError()
 
-    def trimspace(self) -> str:
+    def trimspace(self) -> None:
         if self.strLiternalMatches is None:
             self.memorizeMatches()
         data = self.data
