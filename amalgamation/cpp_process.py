@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, TypeVar, overload
 
 from amalgamation.patterns import Patterns
 
+
 if TYPE_CHECKING:
     from amalgamation.amalgamation import Amalgamation
 
@@ -88,7 +89,7 @@ class FileProcessor(object):
                     self.threeslashCommentMatches
                 )
                 # // Single-line comment starting with two slashes.
-                if i == j+2:
+                if i == j + 2:
                     i = self.searchMatchAt(
                         j,
                         Patterns.raw_twoslash_comment_pattern,
@@ -100,7 +101,7 @@ class FileProcessor(object):
                     Patterns.include_pattern,
                     self.includeMatches
                 )
-                if i == j+2:
+                if i == j + 2:
                     i = self.searchMatchAt(
                         j,
                         Patterns.pragmaonce_pattern,
@@ -126,7 +127,7 @@ class FileProcessor(object):
         def decideRemoveType(lsts: List[List[re.Match]], *args: int) -> Optional[List[re.Match]]:
             """Find the first match in args, args should be a list of List[re.Match]."""
             index = -1
-            start = len(self.data)+1
+            start = len(self.data) + 1
             for i, lst in enumerate(lsts):
                 if len(lst) == args[i]:
                     continue
@@ -164,7 +165,7 @@ class FileProcessor(object):
 
             data += self.data[lastend:m.start()]
             lastend = m.end()
-            if lst is self.twoslashCommentMatches and self.data[lastend-1] == '\n':
+            if lst is self.twoslashCommentMatches and self.data[lastend - 1] == '\n':
                 lastend -= 1
 
             if removeComment:
@@ -244,18 +245,18 @@ class FileProcessor(object):
                 ans += "\n"
                 continue
             cannotLstrip = self.charInLiteral(countChar)
-            cannotRstrip = self.charInLiteral(countChar+len(row))
+            cannotRstrip = self.charInLiteral(countChar + len(row))
             if cannotRstrip:
                 # not pre-compile commands
-                ans += row+"\n"
+                ans += row + "\n"
             elif cannotLstrip:
                 # not pre-compile commands
-                ans += rt+"\n"
+                ans += rt + "\n"
             else:
                 if t[0] == '#':
-                    ans += t+"\n"
+                    ans += t + "\n"
                 else:
-                    ans += rt+"\n"
+                    ans += rt + "\n"
             countChar += len(row) + 1
         self.data = ans
         self.forget()

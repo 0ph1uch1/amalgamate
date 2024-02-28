@@ -12,5 +12,5 @@ class Patterns:
     pragmaonce_pattern = re.compile(
         r'(^|\n)#\s*?pragma\s*?once',
         re.S
-        )
+    )
     string_pattern = re.compile("[^']" r'".*?(?<=[^\\])"', re.S)

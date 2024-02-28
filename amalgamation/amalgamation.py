@@ -1,11 +1,12 @@
 import json
 import os
 import re
-from typing import Dict, List, Optional, Type, TypeVar
+from typing import Dict, List, Optional, Type, TypeVar, cast
 
 from amalgamation.cpp_process import FileProcessor
 from amalgamation.header import HeaderProcessor
 from amalgamation.source import SourceProcessor
+
 
 _T = TypeVar("_T")
 
@@ -114,7 +115,7 @@ class Amalgamation(object):
     @staticmethod
     def addObject(fullpath: str, _type: Type[_T], _list: List[_T], _dict: Dict[str, _T]):
         fullpath = os.path.abspath(fullpath)
-        s = _type(fullpath)
+        s = _type(fullpath)  # type: ignore
         _list.append(s)
         _dict[fullpath] = s
 
@@ -146,7 +147,7 @@ class Amalgamation(object):
         root: List[HeaderProcessor] = []
         for s in filelist:
             if s.refCount == 0:
-                root.append(s)
+                root.append(cast(HeaderProcessor, s))
         if len(root) == 0 and len(filelist) != 0:
             raise ValueError("Circular include detected")
 

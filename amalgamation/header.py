@@ -21,8 +21,8 @@ class HeaderProcessor(FileProcessor):
             self.includes[i].object = self.searchFile(
                 searchPaths,
                 relpath,
-                [amalgamation.headersDict]
-            )
+                [amalgamation.headersDict]  # type: ignore
+            )  # type: ignore
 
         l = []
         for inc in self.includes:

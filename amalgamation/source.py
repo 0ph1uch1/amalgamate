@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 from amalgamation.cpp_process import FileProcessor
 
+
 if TYPE_CHECKING:
     from amalgamation.amalgamation import Amalgamation
 
@@ -21,8 +22,8 @@ class SourceProcessor(FileProcessor):
             self.includes[i].object = self.searchFile(
                 searchPaths,
                 relpath,
-                [amalgamation.headersDict, amalgamation.sourcesDict]
-            )
+                [amalgamation.headersDict, amalgamation.sourcesDict]  # type: ignore
+            )  # type: ignore
 
         l = []
         for inc in self.includes:
